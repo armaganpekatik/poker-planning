@@ -1,0 +1,62 @@
+$column-title-color: #dadada;
+$border: 1px solid #000;
+
+.form-wp {
+  padding: 20px;
+  display: flex;
+}
+
+.story-list {
+  flex: 1;
+  border: $border;
+}
+
+.story-list .row {
+  width: 100%;
+  display: flex;
+}
+
+.story-list .column {
+  width: 33.3%;
+  display: inline-table;
+  border-right: $border;
+  padding: 3px;
+}
+
+.story-list >div:nth-of-type(odd) {
+  background: #EEE;
+}
+
+.story-list .title {
+  background-color: $column-title-color;
+  font-weight: bold;
+}
+
+.story-points {
+  margin-left: 10px;
+  flex: 1;
+  border: $border;
+  text-align: center;
+}
+
+.story-points div {
+  border: 1px solid #CCC;
+  padding: 5px;
+  margin: 10px;
+  width: 20px;
+  height: 20px;
+  display: inline-table;
+  text-align: center;
+  cursor: pointer;
+}
+.story-points .active {
+  border: 1px solid #f3a32b;
+  background-color: #f3a32b;
+}
+
+.story-panel {
+  margin-left: 10px;
+  flex: 1;
+  border: $border;
+  text-align: center;
+}

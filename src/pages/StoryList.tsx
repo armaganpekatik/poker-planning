@@ -76,7 +76,7 @@ const StoryList = () => {
     var result = await setSession(session);
     if(result)
     {
-      navigate('/view-plan-sm');
+      navigate('/view-plan');
       return true;
     }
 

@@ -1,4 +1,4 @@
 export interface IVote {
-    vote: number,
+    vote: string,
     voter: number
 }

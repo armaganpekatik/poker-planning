@@ -28,7 +28,7 @@ const Navbar = () => {
               <NavLink to="/story-list">New Session</NavLink>
             </li>
             <li>
-              <NavLink to="/view-plan-sm">View Session</NavLink>
+              <NavLink to="/view-plan">View Session</NavLink>
             </li>        
           </ul>
         </div>

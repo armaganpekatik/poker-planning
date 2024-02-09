@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 
 import Home from './pages/Home';
 import StoryList from './pages/StoryList';
-import ViewPlanSM from './pages/ViewPlanSM';
+import ViewPlanSM from './pages/ViewPlan';
 
 const App = () => {
   return (
@@ -14,7 +14,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/story-list" element={<StoryList />} />
-            <Route path="/view-plan-sm" element={<ViewPlanSM />} />
+            <Route path="/view-plan" element={<ViewPlanSM />} />
           </Routes>
         </main>
       </Router>

@@ -4,19 +4,26 @@ import { ISession } from '../interfaces/ISession'
 import { IStory } from '../interfaces/IStory';
 import { getSession } from '../apis/Session';
 import { alertMessage } from '../components/Alert';
-import { addVote } from '../apis/Vote';
+import { addVote, getVote, getVotes } from '../apis/Vote';
+import { IVote } from '../interfaces/IVote';
 
-const ViewPlanSM = () => {
+const ViewPlan = () => {
 
-  const storyPoints = ['1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '134', '?'];
+  const storyPoints = ['1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '144', '?'];
+  const voterId = 0; //TODO: Change this to dynamic
+  const notVotedValue = 'Not Voted';
 
   const [data, setData] = useState<ISession>();
   const [vote, setVote] = useState('0');
   const [isVoted, setIsVoted] = useState(false);
   const [activeStory, setActiveStory] = useState<IStory>();
+  const [votes, setVotes] = useState<IVote[]>();
+  const [voteEnd, setVoteEnd] = useState(false);
 
   useEffect(() => {
     getSessionData();
+    getVotesData();
+    getCurrentVote();
   }, []);
 
   useEffect(() => {
@@ -26,25 +33,48 @@ const ViewPlanSM = () => {
   }, [data]);
 
   const getSessionData = async () => {
-    var sessionData = await getSession();
+    const sessionData = await getSession();
     if (!sessionData) {
       alertMessage('Error while reading data from DB. More detail can be found in console logs.');
     }
-    console.log(sessionData);
     setData(sessionData as ISession);
+  }
+
+  const getVotesData = async () => {
+    const votesData = await getVotes();
+    console.log(votesData);
+    setVotes(votesData as IVote[]);
+  }
+
+  const getCurrentVote = async () => {
+    const currentVote = await getVote(voterId);
+    if (currentVote && currentVote.vote != notVotedValue) {
+      let voteStr = currentVote.vote;
+      setVote(voteStr);
+      setIsVoted(true);
+    }
   }
 
   const voteItem = (item: string) => {
     if (!isVoted) {
       setVote(item);
       addVote({
-        vote: item === '?' ? 0 : parseInt(vote),
-        voter: 0 //TODO: Change this to dynamic
+        vote: item,
+        voter: voterId
       })
     }
     setIsVoted(true);
   }
 
+  const calculateVoted = (item: string): string => {
+    if (voteEnd) {
+      return item;
+    }
+    if (item !== notVotedValue) {
+      return 'Voted';
+    }
+    return item;
+  }
 
   if (!data) {
     return (<div>Loading</div>)
@@ -71,8 +101,7 @@ const ViewPlanSM = () => {
         }
       </div>
       <div className='story-points'>
-        {activeStory?.name} - {vote === '0' ? 'Please Vote!!' : `${vote} voted`}
-        <br />
+        <p>{activeStory?.name} - {vote === '0' ? 'Please Vote!!' : `${vote} voted`}</p>
         {
           storyPoints.map(item => {
             return (
@@ -82,19 +111,22 @@ const ViewPlanSM = () => {
         }
       </div>
       <div className='story-panel'>
-        {activeStory?.name} is active
-        <br />
+        <p>{activeStory?.name} is active</p>
         {
-          Array(data.numberOfVoters).fill(null).map((item, index) => {
+          votes?.map((item, index) => {
             return (
-              <div key={index}>Voter {index + 1} : 'Not Voted'</div>
+              <div key={index}>
+                {item.voter === 0 ? 'Scrum Master' : `Voter ${item.voter}`}
+                : {calculateVoted(item.vote)}
+              </div>
             )
           })
         }
+        <button className='button'>End Voting</button>
       </div>
     </div>
 
   );
 };
 
-export default ViewPlanSM;
+export default ViewPlan;

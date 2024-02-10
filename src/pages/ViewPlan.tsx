@@ -128,7 +128,7 @@ const ViewPlan = () => {
 
   if(!activeStory)
   {
-    return (<div><h2>Result:</h2><StoryBoard data={data} /></div>);
+    return (<div className='result'><h2>Result:</h2><StoryBoard data={data} /></div>);
   }
 
   return (

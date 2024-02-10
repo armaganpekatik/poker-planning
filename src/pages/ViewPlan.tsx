@@ -1,29 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import '../css/ViewPlanSM.scss'
+import '../css/ViewPlan.scss'
 import { ISession } from '../interfaces/ISession'
 import { IStory } from '../interfaces/IStory';
-import { getSession } from '../apis/Session';
+import { getSession, saveAndIterateToNextSessionStory } from '../apis/Session';
 import { alertMessage } from '../components/Alert';
-import { addVote, getVote, getVotes } from '../apis/Vote';
+import { addVote, getVotes } from '../apis/Vote';
 import { IVote } from '../interfaces/IVote';
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import StoryBoard from '../components/StoryBoard';
+import StoryPointsBoard from '../components/StoryPointsBoard';
+import StoryManagePanel from '../components/StoryManagePanel';
+import Loader from '../components/Loader';
 
 const ViewPlan = () => {
 
-  const storyPoints = ['1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '144', '?'];
-  const voterId = 0; //TODO: Change this to dynamic
   const notVotedValue = 'Not Voted';
+  const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams()
+  const [voterId, setVoterId] = useState(0);
   const [data, setData] = useState<ISession>();
   const [vote, setVote] = useState('0');
   const [isVoted, setIsVoted] = useState(false);
-  const [activeStory, setActiveStory] = useState<IStory>();
   const [votes, setVotes] = useState<IVote[]>();
   const [voteEnd, setVoteEnd] = useState(false);
+  const [storyPoint, setStoryPoint] = useState('0');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeStory, setActiveStory] = useState<IStory>({
+    id: 0,
+    name: '',
+    status: notVotedValue,
+    storyPoint: '0'
+  });
 
   useEffect(() => {
     getSessionData();
     getVotesData();
-    getCurrentVote();
+
+    const interval = setInterval(() => {
+      refresh();
+    }, 5000);
+    return () => clearInterval(interval);
+
+    // I want this to run only run once
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -41,91 +61,102 @@ const ViewPlan = () => {
   }
 
   const getVotesData = async () => {
-    const votesData = await getVotes();
-    console.log(votesData);
-    setVotes(votesData as IVote[]);
-  }
+    const voterIdStr = searchParams.get('voter');
+    const voterIdValue = voterIdStr ? parseInt(voterIdStr) : 0;
+    setVoterId(voterIdValue);
 
-  const getCurrentVote = async () => {
-    const currentVote = await getVote(voterId);
-    if (currentVote && currentVote.vote != notVotedValue) {
+    const votesData = await getVotes();
+    setVotes(votesData as IVote[]);
+    if (votesData && votesData.filter(x => x.vote === notVotedValue).length === 0) {
+      setVoteEnd(true);
+    }
+    else {
+      setVoteEnd(false);
+      setVote('0');
+      setIsVoted(false);
+    }
+
+    const currentVote = votesData.filter(x => x.voter === voterIdValue)[0];
+    if (currentVote && currentVote.vote !== notVotedValue) {
       let voteStr = currentVote.vote;
       setVote(voteStr);
       setIsVoted(true);
     }
+
+    if (!currentVote) {
+      alertMessage('Voter is not found. Redirect to Scrum Master page.');
+      navigate('/view-plan');
+    }
   }
 
-  const voteItem = (item: string) => {
+  const voteItem = async (item: string) => {
+    setIsLoading(true);
     if (!isVoted) {
       setVote(item);
-      addVote({
+      await addVote({
         vote: item,
         voter: voterId
-      })
+      });
+      getVotesData();
     }
     setIsVoted(true);
+    setIsLoading(false);
   }
 
-  const calculateVoted = (item: string): string => {
-    if (voteEnd) {
-      return item;
+  const submitVoting = async () => {
+    if (!storyPoint) {
+      alertMessage('Please set the final number');
     }
-    if (item !== notVotedValue) {
-      return 'Voted';
-    }
-    return item;
+    setIsLoading(true);
+    await saveAndIterateToNextSessionStory(activeStory.id, storyPoint);
+    await refresh();
+    setIsLoading(false);
   }
 
-  if (!data) {
-    return (<div>Loading</div>)
+  const setFinalNumber = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setStoryPoint(event.target.value);
+  };
+
+  const refresh = async () => {
+    getVotesData();
+    getSessionData();
+  }
+
+  if (!data || isLoading) {
+    return (<Loader />);
+  }
+
+  if(!activeStory)
+  {
+    return (<div><h2>Result:</h2><StoryBoard data={data} /></div>);
   }
 
   return (
-    <div className='form-wp'>
-      <div className='story-list'>
-        <div className='row'>
-          <div className='column title'> Story </div>
-          <div className='column title'> Story Point </div>
-          <div className='column title' style={{ border: 'none' }}> Status </div>
-        </div>
+    <div>
+      <div className='form-wp'>
+        <StoryBoard data={data} />
+
+        <StoryPointsBoard
+          activeStoryName={activeStory.name}
+          vote={vote}
+          onVoteItem={voteItem} />
+
         {
-          data.planningList.map((item, index) => {
-            return (
-              <div className='row' key={index}>
-                <div className='column'> {item.name} </div>
-                <div className='column'> {item.storyPoint} </div>
-                <div className='column' style={{ border: 'none' }}> {item.status}</div>
-              </div>
-            )
-          })
+          voterId === 0 ? (
+            <StoryManagePanel
+              activeStoryName={activeStory.name}
+              votes={votes}
+              isVotingEnd={voteEnd}
+              onSubmitVoting={submitVoting}
+              onSetFinalNumber={setFinalNumber} />
+          ) : (<></>)
         }
       </div>
-      <div className='story-points'>
-        <p>{activeStory?.name} - {vote === '0' ? 'Please Vote!!' : `${vote} voted`}</p>
-        {
-          storyPoints.map(item => {
-            return (
-              <div className={vote === item ? 'active' : ''} key={item} onClick={() => voteItem(item)}>{item}</div>
-            )
-          })
-        }
-      </div>
-      <div className='story-panel'>
-        <p>{activeStory?.name} is active</p>
-        {
-          votes?.map((item, index) => {
-            return (
-              <div key={index}>
-                {item.voter === 0 ? 'Scrum Master' : `Voter ${item.voter}`}
-                : {calculateVoted(item.vote)}
-              </div>
-            )
-          })
-        }
-        <button className='button'>End Voting</button>
+      <div style={{ textAlign: 'center' }}>
+        <button className='button' onClick={refresh}>Refresh</button>
+        <p>If you don't refresh, it refreshes in every 5 seconds.</p>
       </div>
     </div>
-
   );
 };
 

@@ -1,5 +1,5 @@
 $column-title-color: #dadada;
-$border: 1px solid #000;
+$border: 1px solid #9b9999;
 
 .form-wp {
   padding: 20px;
@@ -58,6 +58,27 @@ $border: 1px solid #000;
   margin-left: 10px;
   flex: 1;
   border: $border;
+  padding: 0 5px 20px 5px;
+}
+
+.story-panel .inner .divitem {
+  columns: 3;
+  padding: 2px 0;
+  border-bottom: $border;
+}
+
+.story-panel .inner .divitem .vote {
+  font-weight: bold;
+}
+
+.story-panel .note{  
+  font-size: 11px;
+}
+
+.story-panel .buttondiv{  
   text-align: center;
-  padding-bottom: 20px;
+}
+
+.story-panel .button {
+  margin-top: 10px;
 }

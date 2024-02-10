@@ -61,14 +61,14 @@ const StoryList = () => {
     }
 
     const session : ISession = {
-      numberOfVoters: planning.numberOfVoters,
+      numberOfVoters: planning.numberOfVoters + 1, // add the Scrum Master
       planningName: planning.planningName,
       planningList: planning.planningList.map((item, index) => {
         return {
           id: index,
           name: item,
           status: index === 0 ? 'Active' : 'Not Voted',
-          storyPoint: 0
+          storyPoint: '0'
         } as IStory
       })
     }

@@ -17,17 +17,6 @@ export const getVotes = async (): Promise<IVote[]> => {
     return [];
 }
 
-export const getVote = async (voter: number): Promise<IVote|null> => {
-    try {
-        var votes = await getVotes();
-        return votes.filter(x => x.voter === voter)[0];
-    }
-    catch (e) {
-        console.log(e);
-    }
-    return null;
-}
-
 export const resetVotes = async (numberOfVoters: number): Promise<boolean> => {
     try {
         await deleteDoc(docRef);

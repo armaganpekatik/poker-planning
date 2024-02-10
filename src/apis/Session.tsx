@@ -22,17 +22,51 @@ export const getSession = async () : Promise<ISession|null> => {
 export const setSession = async (session: ISession) : Promise<boolean> =>  { 
     try {
         await setDoc(docRef, session);
-        var voteResult = await resetVotes(session.numberOfVoters + 1);
+        const voteResult = await resetVotes(session.numberOfVoters);
         if (!voteResult)
         {
             return false;
         }
+        return true;
     } 
     catch(e)
     {
         console.log(e);
+    }
+    return false;
+}
+
+export const saveAndIterateToNextSessionStory = async (storyId: number, storyPoint: string) : Promise<boolean> => {
+    const session = await getSession();
+    const nextStoryId = storyId + 1;
+
+    if(!session)
+    {
         return false;
     }
+
+    var nextStory = session.planningList.find(x => x.id === nextStoryId);
+    if(nextStory)
+    {
+        nextStory.status = 'Active';
+    }
+
+    var currentStory = session.planningList.find(x => x.id === storyId);
+    if(currentStory)
+    {
+        currentStory.status = 'Voted';
+        currentStory.storyPoint = storyPoint;
+    }
     
-    return true;
+    try {
+        await setDoc(docRef, session);
+        await resetVotes(session.numberOfVoters);
+        return true;
+    } 
+    catch(e)
+    {
+        console.log(e);        
+    }
+
+    return false;
 }

@@ -139,7 +139,8 @@ const ViewPlan = () => {
   }
 
   return (
-    <div>
+    <div className='form-container'>
+      <h2>Welcome, {voterId == 0 ? 'Scrum Master' : `Voter ${voterId}` }</h2>
       <div className='form-wp'>
         <StoryBoard data={data} />
 

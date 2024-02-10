@@ -1,8 +1,12 @@
 $column-title-color: #dadada;
 $border: 1px solid #9b9999;
 
-.form-wp {
+.form-container {
   padding: 20px;
+}
+
+.form-wp {
+  margin-bottom: 20px;
   display: flex;
 }
 

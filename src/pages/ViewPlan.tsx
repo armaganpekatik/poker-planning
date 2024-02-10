@@ -26,12 +26,7 @@ const ViewPlan = () => {
   const [voteEnd, setVoteEnd] = useState(false);
   const [storyPoint, setStoryPoint] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeStory, setActiveStory] = useState<IStory>({
-    id: 0,
-    name: '',
-    status: notVotedValue,
-    storyPoint: '0'
-  });
+  const [activeStory, setActiveStory] = useState<IStory | null>();
 
   useEffect(() => {
     getSessionData();
@@ -46,18 +41,21 @@ const ViewPlan = () => {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-    if (data) {
-      setActiveStory(data.planningList.filter(x => x.status === 'Active')[0]);
-    }
-  }, [data]);
 
   const getSessionData = async () => {
     const sessionData = await getSession();
     if (!sessionData) {
       alertMessage('Error while reading data from DB. More detail can be found in console logs.');
+      return;
     }
     setData(sessionData as ISession);
+    const activeStoryItem = sessionData.planningList.find(x => x.status === 'Active');
+    if(activeStoryItem) {
+      setActiveStory(activeStoryItem);
+    }
+    else {
+      setActiveStory(null);
+    }
   }
 
   const getVotesData = async () => {
@@ -66,8 +64,14 @@ const ViewPlan = () => {
     setVoterId(voterIdValue);
 
     const votesData = await getVotes();
+    if(!votesData)
+    {
+      return;
+    }
+
     setVotes(votesData as IVote[]);
-    if (votesData && votesData.filter(x => x.vote === notVotedValue).length === 0) {
+    
+    if (votesData.filter(x => x.vote === notVotedValue).length === 0) {
       setVoteEnd(true);
     }
     else {
@@ -76,7 +80,7 @@ const ViewPlan = () => {
       setIsVoted(false);
     }
 
-    const currentVote = votesData.filter(x => x.voter === voterIdValue)[0];
+    const currentVote = votesData.find(x => x.voter === voterIdValue);
     if (currentVote && currentVote.vote !== notVotedValue) {
       let voteStr = currentVote.vote;
       setVote(voteStr);
@@ -106,6 +110,9 @@ const ViewPlan = () => {
   const submitVoting = async () => {
     if (!storyPoint) {
       alertMessage('Please set the final number');
+    }
+    if(!activeStory) {
+      return;
     }
     setIsLoading(true);
     await saveAndIterateToNextSessionStory(activeStory.id, storyPoint);

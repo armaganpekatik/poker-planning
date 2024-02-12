@@ -140,7 +140,7 @@ const ViewPlan = () => {
 
   return (
     <div className='form-container'>
-      <h2>Welcome, {voterId == 0 ? 'Scrum Master' : `Voter ${voterId}` }</h2>
+      <h2>Welcome, {voterId === 0 ? 'Scrum Master' : `Voter ${voterId}` }</h2>
       <div className='form-wp'>
         <StoryBoard data={data} />
 

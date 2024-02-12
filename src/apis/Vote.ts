@@ -1,12 +1,14 @@
 import { firebaseDB } from '../helpers/Firebase';
 import { getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { IVote } from '../interfaces/IVote';
+//To mock local functions
+import * as thisModule from './Vote'
 
 const docRef = doc(firebaseDB, 'Votes', '1');
 
 export const getVotes = async (): Promise<IVote[]> => {
-    const votes = await getDoc(docRef);
     try {
+        const votes = await getDoc(docRef);
         const data = votes.data()?.votes as IVote[];
         return data;
     }
@@ -38,9 +40,9 @@ export const resetVotes = async (numberOfVoters: number): Promise<boolean> => {
 
 export const addVote = async (vote: IVote): Promise<boolean> => {
     try {
-        var votes = await getVotes();
-        const index = votes.findIndex(x => x.voter === vote.voter);
-        votes[index] = vote;
+        var votes = await thisModule.getVotes();
+        const record = votes.find(x => x.voter === vote.voter) as IVote;
+        record.vote = vote.vote;
         await setDoc(docRef, { votes: votes });
     }
     catch (e) {
